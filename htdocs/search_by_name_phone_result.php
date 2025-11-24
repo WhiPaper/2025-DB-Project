@@ -1,30 +1,27 @@
 <?php
-	$name = $_POST['member_name'];
-	$phone = $_POST['phone'];
-   $member = null;
-   $message = "";
+$name = $_POST['member_name'];
+$phone = $_POST['phone'];
+$member = null;
+$message = "";
 
-   if($name == "" || $phone == "") {
-	   $message = "이름과 전화번호를 모두 입력하세요.";
-   }
-   else {
-		require_once __DIR__ . "/conn.php";
-	   $sql = "SELECT member_id, login_id, member_name, phone, email, remain_time, grade_id FROM members WHERE member_name = '".$name."' AND phone = '".$phone."'";
-	   $ret = mysqli_query($con, $sql);
-	   if($ret) {
-		   $count = mysqli_num_rows($ret);
-		   if($count == 0) {
-			   $message = "조건에 맞는 회원이 없습니다.";
-		   }
-		   else {
-			   $member = mysqli_fetch_array($ret);
-		   }
-	   }
-	   else {
-		   $message = "데이터 조회 실패!!!<br>실패 원인 :".mysqli_error($con);
-	   }
-	   mysqli_close($con);
-   }
+if ($name == "" || $phone == "") {
+	$message = "이름과 전화번호를 모두 입력하세요.";
+} else {
+	require_once __DIR__ . "/conn.php";
+	$sql = "SELECT member_id, login_id, member_name, phone, email, remain_time, grade_id FROM members WHERE member_name = '" . $name . "' AND phone = '" . $phone . "'";
+	$ret = mysqli_query($con, $sql);
+	if ($ret) {
+		$count = mysqli_num_rows($ret);
+		if ($count == 0) {
+			$message = "조건에 맞는 회원이 없습니다.";
+		} else {
+			$member = mysqli_fetch_array($ret);
+		}
+	} else {
+		$message = "데이터 조회 실패!!!<br>실패 원인 :" . mysqli_error($con);
+	}
+	mysqli_close($con);
+}
 ?>
 <!DOCTYPE html>
 <html lang="ko">

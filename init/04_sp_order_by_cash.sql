@@ -1,13 +1,5 @@
-USE `pcr`;
+USE pcr;
 
--- [1. 변수 설정]
-SET @product_var = "새우깡";
-SET @quantity_var = 100;
-SET @loginID_var = "minhee_k";
-
--- ==========================================================
--- [프로시저 생성: 현금 상품 주문]
--- ==========================================================
 DROP PROCEDURE IF EXISTS `process_cash_order`;
 
 DELIMITER $$

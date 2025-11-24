@@ -1,10 +1,11 @@
 SET NAMES utf8mb4;
 USE pcr;
-DROP PROCEDURE IF EXISTS ProcessTimeOrder;
+
+DROP PROCEDURE IF EXISTS `process_time_order`;
 
 DELIMITER //
 
-CREATE PROCEDURE ProcessTimeOrder(
+CREATE PROCEDURE process_time_order(
     IN p_member_id INT,
     IN p_product_id INT,
     IN p_quantity INT

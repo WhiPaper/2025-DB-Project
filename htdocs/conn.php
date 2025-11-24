@@ -1,2 +1,2 @@
 <?php
-   $con = mysqli_connect("localhost", "root", "1234", "sqlDB") or die("MySQL 접속 실패 !!");
+$con = mysqli_connect("db", "root", "passwd", "pcr") or die("MySQL 접속 실패 !!");

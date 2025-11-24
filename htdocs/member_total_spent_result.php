@@ -1,29 +1,26 @@
 <?php
-	$member_id = (int)$_POST['member_id'];
-   $data = null;
-   $message = "";
+$member_id = (int)$_POST['member_id'];
+$data = null;
+$message = "";
 
-   if($member_id <= 0) {
-	   $message = "유효한 회원 ID를 입력하세요.";
-   }
-   else {
-		require_once __DIR__ . "/conn.php";
-	   $sql = "SELECT member_name AS '이름', total_spent AS '총 결제 금액' FROM members WHERE member_id = ".$member_id;
-	   $ret = mysqli_query($con, $sql);
-	   if($ret) {
-		   $count = mysqli_num_rows($ret);
-		   if($count == 0) {
-			   $message = "해당 회원을 찾을 수 없습니다.";
-		   }
-		   else {
-			   $data = mysqli_fetch_array($ret);
-		   }
-	   }
-	   else {
-		   $message = "데이터 조회 실패!!!<br>실패 원인 :".mysqli_error($con);
-	   }
-	   mysqli_close($con);
-   }
+if ($member_id <= 0) {
+	$message = "유효한 회원 ID를 입력하세요.";
+} else {
+	require_once __DIR__ . "/conn.php";
+	$sql = "SELECT member_name AS '이름', total_spent AS '총 결제 금액' FROM members WHERE member_id = " . $member_id;
+	$ret = mysqli_query($con, $sql);
+	if ($ret) {
+		$count = mysqli_num_rows($ret);
+		if ($count == 0) {
+			$message = "해당 회원을 찾을 수 없습니다.";
+		} else {
+			$data = mysqli_fetch_array($ret);
+		}
+	} else {
+		$message = "데이터 조회 실패!!!<br>실패 원인 :" . mysqli_error($con);
+	}
+	mysqli_close($con);
+}
 ?>
 <!DOCTYPE html>
 <html lang="ko">

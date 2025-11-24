@@ -1,5 +1,4 @@
-SET NAMES utf8mb4;
-USE `pcr`;
+USE pcr;
 
 -- Caller must set @product_var, @quantity_var, and @loginID_var before invoking the procedure.
 DROP PROCEDURE IF EXISTS `process_order_transaction`;
