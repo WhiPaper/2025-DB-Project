@@ -4,95 +4,90 @@ DROP PROCEDURE IF EXISTS `process_cash_order`;
 
 DELIMITER $$
 
-CREATE PROCEDURE `process_cash_order`()
+CREATE PROCEDURE `process_cash_order`(
+    IN p_login_id VARCHAR(255),
+    IN p_product_name VARCHAR(255),
+    IN p_quantity INT
+)
 BEGIN
-    -- [0. 변수 초기화]
-    SET @memberID_var = NULL;
-    SET @gradeID_var = NULL;
-    SET @discount_rate_var = 0;
-    SET @product_status = 1; 
+    DECLARE v_member_id INT;
+    DECLARE v_grade_id INT;
+    DECLARE v_discount_rate INT DEFAULT 0;
+    DECLARE v_product_id INT;
+    DECLARE v_price INT;
+    DECLARE v_product_status TINYINT DEFAULT 1;
+    DECLARE v_quantity INT DEFAULT 1;
+    DECLARE v_before_discount INT;
+    DECLARE v_after_discount INT;
+    DECLARE v_new_order_id BIGINT;
 
-    -- [2. 데이터 조회]
-    -- A. 회원 정보 조회
-    SELECT member_id, grade_id, total_spent 
-    INTO @memberID_var, @gradeID_var, @current_total_spent
-    FROM members 
-    WHERE login_id = @loginID_var;
+    SET v_quantity = IFNULL(p_quantity, 1);
+    IF v_quantity < 1 THEN
+        SET v_quantity = 1;
+    END IF;
 
-    -- 회원 존재 여부 확인
-    IF @memberID_var IS NULL THEN
+    SELECT member_id, grade_id
+    INTO v_member_id, v_grade_id
+    FROM members
+    WHERE login_id = p_login_id;
+
+    IF v_member_id IS NULL THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '오류: 존재하지 않는 회원입니다.';
     END IF;
 
-    -- B. 할인율 조회
-    SELECT discount_rate INTO @discount_rate_var 
-    FROM grades 
-    WHERE grade_id = @gradeID_var;
+    SELECT discount_rate INTO v_discount_rate
+    FROM grades
+    WHERE grade_id = v_grade_id;
 
-    -- C. 상품 정보 조회
-    SELECT product_id, current_price, status 
-    INTO @productID_var, @price_var, @product_status
-    FROM products 
-    WHERE product_name = @product_var;
+    SELECT product_id, current_price, status
+    INTO v_product_id, v_price, v_product_status
+    FROM products
+    WHERE product_name = p_product_name;
 
-    -- 상품 존재 확인
-    IF @productID_var IS NULL THEN
+    IF v_product_id IS NULL THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '오류: 존재하지 않는 상품입니다.';
     END IF;
-    -- 판매 상태 확인
-    IF @product_status = 0 THEN
+    IF v_product_status = 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '주문 실패: 판매 중단된 상품입니다.';
     END IF;
 
-    -- [3. 가격 계산]
-    -- 가격 = 단가 * 수량
-    SET @before_discount_var = @price_var * @quantity_var;
-    -- 최종 결제 금액 = 가격 * (1 - 할인율)
-    SET @after_discount_var = FLOOR(@before_discount_var * (1 - (IFNULL(@discount_rate_var, 0) * 0.01)));
+    SET v_before_discount = v_price * v_quantity;
+    SET v_after_discount = FLOOR(v_before_discount * (1 - (IFNULL(v_discount_rate, 0) * 0.01)));
 
-
-    -- [4. 트랜잭션 실행]
     START TRANSACTION;
 
-        -- A. 주문 내역 생성 (Orders)
-        INSERT INTO `orders` 
-        (`order_time`, `member_id`, `grade_id_at_order`, `discount_rate_at_order`) 
-        VALUES 
-        (NOW(), @memberID_var, @gradeID_var, IFNULL(@discount_rate_var, 0));
-        
-        SET @new_order_id = LAST_INSERT_ID();
+        INSERT INTO `orders`
+        (`order_time`, `member_id`, `grade_id_at_order`, `discount_rate_at_order`)
+        VALUES
+        (NOW(), v_member_id, v_grade_id, IFNULL(v_discount_rate, 0));
 
-        -- B. 주문 상세 저장 (Order Details)
-        INSERT INTO `order_details` 
-        (`order_id`, `product_id`, `price_at_sale`, `quantity`) 
-        VALUES 
-        (@new_order_id, @productID_var, @price_var, @quantity_var);
+        SET v_new_order_id = LAST_INSERT_ID();
 
-        -- C. [확실한 처리] 일별 매출(daily_sales) 증가
+        INSERT INTO `order_details`
+        (`order_id`, `product_id`, `price_at_sale`, `quantity`)
+        VALUES
+        (v_new_order_id, v_product_id, v_price, v_quantity);
+
         INSERT INTO `daily_sales` (`date`, `total_sales`)
-        VALUES (CURDATE(), @after_discount_var)
-        ON DUPLICATE KEY UPDATE `total_sales` = `total_sales` + @after_discount_var;
+        VALUES (CURDATE(), v_after_discount)
+        ON DUPLICATE KEY UPDATE `total_sales` = `total_sales` + v_after_discount;
 
-        -- D. 음식 재고 차감
-        UPDATE `products_food` 
-        SET `stock` = `stock` - @quantity_var 
-        WHERE `product_id` = @productID_var;
+        UPDATE `products_food`
+        SET `stock` = `stock` - v_quantity
+        WHERE `product_id` = v_product_id;
 
-        -- E. 로그 기록
-        INSERT INTO `product_logs` 
-        (`record_time`, `product_id`, `change_stock`, `change_reason`) 
-        VALUES 
-        (NOW(), @productID_var, -@quantity_var, 'SALE');
+        INSERT INTO `product_logs`
+        (`record_time`, `product_id`, `change_stock`, `change_reason`)
+        VALUES
+        (NOW(), v_product_id, -v_quantity, 'SALE');
 
-        -- F. [요청 반영] 회원 누적 사용 금액(total_spent) 강제 업데이트
-        -- 트리거 작동 여부와 관계없이, 금액을 확실하게 증가시킵니다.
         UPDATE `members`
-        SET `total_spent` = `total_spent` + @after_discount_var
-        WHERE `member_id` = @memberID_var;
+        SET `total_spent` = `total_spent` + v_after_discount
+        WHERE `member_id` = v_member_id;
 
     COMMIT;
-    
-    SELECT CONCAT('주문 완료! 결제 금액: ', @after_discount_var, '원 (누적금액 및 매출 반영됨)') AS Result;
+
+    SELECT CONCAT('주문 완료! 결제 금액: ', v_after_discount, '원 (누적금액 및 매출 반영됨)') AS Result;
 
 END$$
 

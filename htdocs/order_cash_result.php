@@ -1,7 +1,7 @@
 <?php
-$login_id = $_POST['login_id'];
-$product_name = $_POST['product_name'];
-$quantity = (int)$_POST['quantity'];
+$login_id = $_POST['login_id'] ?? '';
+$product_name = $_POST['product_name'] ?? '';
+$quantity = (int)($_POST['quantity'] ?? 1);
 $error_text = "";
 $result_text = "";
 
@@ -13,27 +13,22 @@ if ($login_id == "" || $product_name == "") {
 	$error_text = "회원 ID와 상품명을 모두 입력하세요.";
 } else {
 	require_once __DIR__ . "/conn.php";
-	$ok = mysqli_query($con, "SET @product_var = '" . $product_name . "'");
-	if ($ok) {
-		$ok = mysqli_query($con, "SET @quantity_var = " . $quantity);
-	}
-	if ($ok) {
-		$ok = mysqli_query($con, "SET @loginID_var = '" . $login_id . "'");
-	}
-	if ($ok) {
-		$ret = mysqli_query($con, "CALL process_cash_order()");
-		if ($ret) {
-			$row = mysqli_fetch_array($ret);
-			if ($row) {
-				$result_text = $row['Result'];
-			} else {
-				$result_text = "결제가 완료되었습니다.";
-			}
-		} else {
-			$error_text = "처리 실패!!!<br>실패 원인 :" . mysqli_error($con);
-		}
-	} else {
+	$sql = sprintf(
+		"CALL process_cash_order('%s', '%s', %d)",
+		$login_id,
+		$product_name,
+		$quantity
+	);
+	$result = mysqli_query($con, $sql);
+	if ($result === false) {
 		$error_text = "처리 실패!!!<br>실패 원인 :" . mysqli_error($con);
+	} else {
+		$row = mysqli_fetch_array($result);
+		if ($row) {
+			$result_text = reset($row) ?? "결제가 완료되었습니다.";
+		} else {
+			$result_text = "결제가 완료되었습니다.";
+		}
 	}
 	mysqli_close($con);
 }
