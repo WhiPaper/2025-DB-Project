@@ -1,28 +1,30 @@
 <?php
-require_once __DIR__ . '/conn.php';
+	$name = $_POST['member_name'];
+	$phone = $_POST['phone'];
+   $member = null;
+   $message = "";
 
-$name = trim($_POST['member_name'] ?? '');
-$phone = trim($_POST['phone'] ?? '');
-$member = null;
-$message = '';
-
-if ($name === '' || $phone === '') {
-	$message = '이름과 전화번호를 모두 입력하세요.';
-} else {
-	try {
-		$pdo = get_pdo();
-		$sql = strip_sql_boilerplate(load_sql('이름과 전화번호 이용한 회원 조회.sql'));
-		$stmt = $pdo->prepare($sql);
-		$stmt->execute([$name, $phone]);
-		$member = $stmt->fetch();
-		if ($member === false) {
-			$member = null;
-			$message = '조건에 맞는 회원이 없습니다.';
-		}
-	} catch (PDOException $e) {
-		$message = '데이터 조회 실패: ' . $e->getMessage();
-	}
-}
+   if($name == "" || $phone == "") {
+	   $message = "이름과 전화번호를 모두 입력하세요.";
+   }
+   else {
+		require_once __DIR__ . "/conn.php";
+	   $sql = "SELECT member_id, login_id, member_name, phone, email, remain_time, grade_id FROM members WHERE member_name = '".$name."' AND phone = '".$phone."'";
+	   $ret = mysqli_query($con, $sql);
+	   if($ret) {
+		   $count = mysqli_num_rows($ret);
+		   if($count == 0) {
+			   $message = "조건에 맞는 회원이 없습니다.";
+		   }
+		   else {
+			   $member = mysqli_fetch_array($ret);
+		   }
+	   }
+	   else {
+		   $message = "데이터 조회 실패!!!<br>실패 원인 :".mysqli_error($con);
+	   }
+	   mysqli_close($con);
+   }
 ?>
 <!DOCTYPE html>
 <html lang="ko">
@@ -35,15 +37,15 @@ if ($name === '' || $phone === '') {
 <body>
 	<h2>이름과 전화번호 검색 결과</h2>
 	<?php if ($member == null): ?>
-		<p><?php echo htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?></p>
+		<p><?php echo $message; ?></p>
 	<?php else: ?>
 		<ul>
-			<li>로그인 ID: <?php echo htmlspecialchars($member['login_id'], ENT_QUOTES, 'UTF-8'); ?></li>
-			<li>이름: <?php echo htmlspecialchars($member['member_name'], ENT_QUOTES, 'UTF-8'); ?></li>
-			<li>전화번호: <?php echo htmlspecialchars($member['phone'], ENT_QUOTES, 'UTF-8'); ?></li>
-			<li>이메일: <?php echo htmlspecialchars($member['email'], ENT_QUOTES, 'UTF-8'); ?></li>
-			<li>잔여시간: <?php echo htmlspecialchars((string) $member['remain_time'], ENT_QUOTES, 'UTF-8'); ?>분</li>
-			<li>등급 ID: <?php echo htmlspecialchars((string) $member['grade_id'], ENT_QUOTES, 'UTF-8'); ?></li>
+			<li>로그인 ID: <?php echo $member['login_id']; ?></li>
+			<li>이름: <?php echo $member['member_name']; ?></li>
+			<li>전화번호: <?php echo $member['phone']; ?></li>
+			<li>이메일: <?php echo $member['email']; ?></li>
+			<li>잔여시간: <?php echo $member['remain_time']; ?>분</li>
+			<li>등급 ID: <?php echo $member['grade_id']; ?></li>
 		</ul>
 	<?php endif; ?>
 	<a href="search_by_name_phone.php">입력 화면으로</a> |
