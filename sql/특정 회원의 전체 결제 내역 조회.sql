@@ -9,5 +9,5 @@ SELECT
     -- 해당 품목에 대한 최종 금액
     after_discount_price AS '결제금액'
 FROM v_member_payment_history 
-WHERE member_id = 1 
+WHERE login_id = 'user01'
 ORDER BY order_time DESC;
