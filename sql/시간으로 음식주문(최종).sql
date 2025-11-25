@@ -2,11 +2,11 @@ USE `pcr`;
 
 -- [1. 변수 설정]
 SET @product_var = "새우깡";
-SET @quantity_var = 1;
+SET @quantity_var = 100;
 SET @loginID_var = "minhee_k";
 
 -- ==========================================================
--- [프로시저 생성]
+-- [프로시저 생성: 시간 차감 상품 주문 (재고 검증 추가)]
 -- ==========================================================
 DROP PROCEDURE IF EXISTS `process_order_transaction`;
 
@@ -20,6 +20,8 @@ BEGIN
     SET @discount_rate_var = 0;
     SET @current_remain_time = 0;
     SET @product_status = 1; 
+    SET @hourly_rate_var = 0; 
+    SET @current_stock = 0; -- [추가] 현재 재고를 담을 변수
 
     -- [2. 데이터 조회]
     -- A. 회원 정보 조회
@@ -38,7 +40,7 @@ BEGIN
     FROM grades 
     WHERE grade_id = @gradeID_var;
 
-    -- C. 상품 정보 조회
+    -- C. 상품 정보 조회 (구매하려는 음식)
     SELECT product_id, current_price, status 
     INTO @productID_var, @price_var, @product_status
     FROM products 
@@ -52,14 +54,41 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '주문 실패: 해당 상품은 현재 판매가 중단되었습니다.';
     END IF;
 
+    -- [D. 재고량 확인 및 검증] - (새로 추가된 로직)
+    -- products_food 테이블에서 현재 재고 조회
+    SELECT stock INTO @current_stock
+    FROM products_food
+    WHERE product_id = @productID_var;
+
+    -- 재고 정보 존재 여부 확인
+    IF @current_stock IS NULL THEN
+         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '오류: 해당 상품의 재고 정보를 찾을 수 없습니다.';
+    END IF;
+
+    -- 재고 부족 확인 (핵심 검증)
+    IF @current_stock < @quantity_var THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = '주문 실패: 상품의 재고가 부족합니다.';
+    END IF;
+
+
+    -- [E. 기준 시간권(1시간) 요금 조회]
+    SELECT current_price INTO @hourly_rate_var
+    FROM products
+    WHERE product_name = '1시간'; 
+
+    -- 기준 요금 조회 실패 시 예외 처리
+    IF @hourly_rate_var IS NULL OR @hourly_rate_var = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '시스템 오류: 기준 시간권(1시간) 가격 정보를 찾을 수 없습니다.';
+    END IF;
+
     -- [3. 계산 로직]
-    -- 가격 계산
+    -- 음식 가격 및 할인 적용 계산
     SET @before_discount_var = @price_var * @quantity_var;
     SET @after_discount_var = FLOOR(@before_discount_var * (1 - (IFNULL(@discount_rate_var, 0) * 0.01)));
     
-    -- [수정됨] 차감할 시간 계산 (1분당 10원)
-    -- 예: 1500원이면 150분 차감
-    SET @time_reduction = FLOOR(@after_discount_var / 10);
+    -- 차감할 시간 계산 (동적 가격 반영)
+    SET @time_reduction = FLOOR((@after_discount_var / @hourly_rate_var) * 60);
 
     -- 잔여 시간 부족 체크
     IF @current_remain_time < @time_reduction THEN
@@ -79,24 +108,21 @@ BEGIN
         SET @new_order_id = LAST_INSERT_ID();
 
         -- B. 주문 상세 저장
-        -- [중요] 이 구문이 실행될 때 '트리거'가 작동하여 등급과 누적금액을 갱신할 것입니다.
         INSERT INTO `order_details` 
         (`order_id`, `product_id`, `price_at_sale`, `quantity`) 
         VALUES 
         (@new_order_id, @productID_var, @price_var, @quantity_var);
 
-        -- C. 음식 재고 차감
+        -- C. 음식 재고 차감 (검증 완료된 상태)
         UPDATE `products_food` 
         SET `stock` = `stock` - @quantity_var 
         WHERE `product_id` = @productID_var;
 
-        -- D. 로그 기록
+        -- D. 로그 기록 (판매량 음수 처리)
         INSERT INTO `product_logs` 
         (`record_time`, `product_id`, `change_stock`, `change_reason`) 
         VALUES 
         (NOW(), @productID_var, -@quantity_var, 'SALE');
-
-        -- [삭제됨] 등급 및 누적금액 업데이트 로직 (트리거에게 위임)
 
         -- E. 잔여 시간 차감
         UPDATE `members` 
@@ -105,7 +131,8 @@ BEGIN
 
     COMMIT;
     
-    SELECT CONCAT('시간 결제 완료! 차감된 시간: ', @time_reduction, '분') AS Result;
+    -- 결과 확인 (남은 재고도 함께 표시)
+    SELECT CONCAT('시간 결제 완료! 차감된 시간: ', @time_reduction, '분 (남은 재고: ', @current_stock - @quantity_var, '개)') AS Result;
 
 END$$
 

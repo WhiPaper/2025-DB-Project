@@ -24,6 +24,8 @@ BEGIN
     DECLARE v_after_discount INT;
     DECLARE v_time_reduction INT;
     DECLARE v_new_order_id BIGINT;
+    DECLARE v_hourly_rate INT DEFAULT 0;
+    DECLARE v_current_stock INT DEFAULT 0;
 
     SET v_quantity = IFNULL(p_quantity, 1);
     IF v_quantity < 1 THEN
@@ -55,9 +57,31 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '주문 실패: 해당 상품은 현재 판매가 중단되었습니다.';
     END IF;
 
+    SELECT stock INTO v_current_stock
+    FROM products_food
+    WHERE product_id = v_product_id;
+
+    IF v_current_stock IS NULL THEN
+         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '오류: 해당 상품의 재고 정보를 찾을 수 없습니다.';
+    END IF;
+
+    IF v_current_stock < v_quantity THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = '주문 실패: 상품의 재고가 부족합니다.';
+    END IF;
+
+    SELECT current_price INTO v_hourly_rate
+    FROM products
+    WHERE product_name = '1시간'; 
+
+    IF v_hourly_rate IS NULL OR v_hourly_rate = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '시스템 오류: 기준 시간권(1시간) 가격 정보를 찾을 수 없습니다.';
+    END IF;
+
+
     SET v_before_discount = v_price * v_quantity;
     SET v_after_discount = FLOOR(v_before_discount * (1 - (IFNULL(v_discount_rate, 0) * 0.01)));
-    SET v_time_reduction = FLOOR(v_after_discount / 10);
+    SET v_time_reduction = FLOOR((v_after_discount / v_hourly_rate) * 60);
 
     IF v_current_remain_time < v_time_reduction THEN
         SIGNAL SQLSTATE '45000'
@@ -93,7 +117,7 @@ BEGIN
 
     COMMIT;
 
-    SELECT CONCAT('시간 결제 완료! 차감된 시간: ', v_time_reduction, '분') AS Result;
+    SELECT CONCAT('시간 결제 완료! 차감된 시간: ', v_time_reduction, '분 (남은 재고: ', v_current_stock - v_quantity, '개)') AS Result;
 
 END$$
 
