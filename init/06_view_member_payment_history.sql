@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 USE `pcr`;
 
 DROP VIEW IF EXISTS `pcr`.`v_member_payment_history`;
