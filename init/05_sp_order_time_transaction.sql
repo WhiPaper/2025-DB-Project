@@ -1,3 +1,5 @@
+
+SET NAMES utf8mb4;
 USE pcr;
 
 DROP PROCEDURE IF EXISTS `process_order_transaction`;
