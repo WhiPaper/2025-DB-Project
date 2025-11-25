@@ -6,7 +6,7 @@ SET @quantity_var = 100;
 SET @loginID_var = "minhee_k";
 
 -- ==========================================================
--- [프로시저 생성: 현금/카드 상품 주문]
+-- [프로시저 생성: 현금/카드 상품 주문 (재고 검증 추가)]
 -- ==========================================================
 DROP PROCEDURE IF EXISTS `process_cash_order`;
 
@@ -19,6 +19,7 @@ BEGIN
     SET @gradeID_var = NULL;
     SET @discount_rate_var = 0;
     SET @product_status = 1; 
+    SET @current_stock = 0; -- [추가] 현재 재고를 담을 변수
 
     -- [2. 데이터 조회]
     -- A. 회원 정보 조회
@@ -52,6 +53,24 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '주문 실패: 판매 중단된 상품입니다.';
     END IF;
 
+    -- [D. 재고량 확인 및 검증] - (새로 추가된 핵심 로직)
+    -- products_food 테이블에서 해당 상품의 현재 재고를 조회합니다.
+    SELECT stock INTO @current_stock
+    FROM products_food
+    WHERE product_id = @productID_var;
+
+    -- 1. 재고 정보 존재 여부 확인 (음식 상품이 아닐 경우 등)
+    IF @current_stock IS NULL THEN
+         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '오류: 해당 상품의 재고 정보를 찾을 수 없습니다.';
+    END IF;
+
+    -- 2. 재고 부족 확인 (주문 수량이 현재 재고보다 크면 에러)
+    IF @current_stock < @quantity_var THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = '주문 실패: 상품의 재고가 부족합니다.';
+    END IF;
+
+
     -- [3. 가격 계산]
     -- 가격 = 단가 * 수량
     SET @before_discount_var = @price_var * @quantity_var;
@@ -81,7 +100,7 @@ BEGIN
         VALUES (CURDATE(), @after_discount_var)
         ON DUPLICATE KEY UPDATE `total_sales` = `total_sales` + @after_discount_var;
 
-        -- D. 음식 재고 차감
+        -- D. 음식 재고 차감 (위에서 검증했으므로 음수 될 걱정 없음)
         UPDATE `products_food` 
         SET `stock` = `stock` - @quantity_var 
         WHERE `product_id` = @productID_var;
@@ -93,18 +112,14 @@ BEGIN
         (NOW(), @productID_var, -@quantity_var, 'SALE');
 
         -- F. [요청 반영] 회원 누적 사용 금액(total_spent) 강제 업데이트
-        -- 트리거 작동 여부와 관계없이, 금액을 확실하게 증가시킵니다.
         UPDATE `members`
         SET `total_spent` = `total_spent` + @after_discount_var
         WHERE `member_id` = @memberID_var;
 
-        -- [제거됨] 회원 등급(grade_id) 업데이트 로직
-        -- 등급 계산은 로직이 복잡하므로 트리거에게 맡기거나 추후 배치로 처리합니다.
-        -- 단, total_spent는 위에서 확실히 증가됩니다.
-
     COMMIT;
     
-    SELECT CONCAT('주문 완료! 결제 금액: ', @after_discount_var, '원 (누적금액 및 매출 반영됨)') AS Result;
+    -- 결과 확인 (남은 재고량도 함께 표시)
+    SELECT CONCAT('주문 완료! 결제 금액: ', @after_discount_var, '원 (남은 재고: ', @current_stock - @quantity_var, '개)') AS Result;
 
 END$$
 
