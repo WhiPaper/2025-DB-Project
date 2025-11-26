@@ -57,7 +57,7 @@ mysqli_close($con);
 					<td><input type="text" name="member_name" value="<?php echo $member['member_name']; ?>" required></td>
 					<td><input type="text" name="login_id" maxlength="12" value="<?php echo $member['login_id']; ?>" required></td>
 					<td><input type="text" name="phone" value="<?php echo $member['phone']; ?>" required></td>
-					<td><input type="email" name="email" value="<?php echo $member['email'] ?? ''; ?>"></td>
+					<td><input type="email" name="email" value="<?php echo $member['email']; ?>" required></td>
 					<td><input type="number" name="remain_time" min="0" value="<?php echo $member['remain_time']; ?>" required></td>
 					<td><?php echo $member['total_spent']; ?></td>
 					<td><?php echo $member['grade_id']; ?></td>
