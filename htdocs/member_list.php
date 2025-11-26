@@ -1,13 +1,12 @@
 <?php
 require_once __DIR__ . "/conn.php";
-$message = $_GET['message'];
 $error = '';
 $members = [];
 $sql = "SELECT m.member_id, m.login_id, m.member_name, m.phone, m.email, m.remain_time, m.total_spent, g.grade_name "
 	. "FROM members m LEFT JOIN grades g ON m.grade_id = g.grade_id ORDER BY m.member_id";
 $ret = mysqli_query($con, $sql);
 if ($ret) {
-	while ($row = mysqli_fetch_array($ret) {
+	while ($row = mysqli_fetch_array($ret)) {
 		$members[] = $row;
 	}
 } else {
@@ -29,8 +28,6 @@ mysqli_close($con);
 		<a href="index.php">메인으로</a> |
 		<a href="member_create.php">회원 추가</a>
 	</p>
-	<?php if ($message !== ''): ?>
-		<p><?php echo $message; ?></p>
 	<?php endif; ?>
 	<?php if ($error !== ''): ?>
 		<p><?php echo $error; ?></p>
