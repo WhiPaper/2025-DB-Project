@@ -23,7 +23,7 @@ require_once __DIR__ . "/conn.php";
 mysqli_query($con, "SET @START_DATE = '" . $start_dt . "'");
 mysqli_query($con, "SET @END_DATE = '" . $end_dt . "'");
 mysqli_query($con, "SET @PRODUCT_NAME = '" . $product_name . "'");
-$sql = "SELECT p.product_name AS '상품명', SUM(od.price_at_sale * od.quantity) AS '총 판매액' FROM order_details AS od JOIN orders AS o ON od.order_id = o.order_id JOIN products AS p ON od.product_id = p.product_id WHERE p.product_name = @PRODUCT_NAME AND o.order_time >= @START_DATE AND o.order_time <= @END_DATE GROUP BY p.product_name";
+$sql = "SELECT p.product_name AS '상품명', IFNULL(SUM(FLOOR( (od.price_at_sale * od.quantity) * (100 - o.discount_rate_at_order) / 100 )), 0) AS '총 판매액' FROM order_details od JOIN orders o ON od.order_id = o.order_id JOIN products p ON od.product_id = p.product_id WHERE o.order_time >= @START_DATE AND o.order_time <= @END_DATE AND p.product_name = @PRODUCT_NAME AND o.pay_type = 'CARD' GROUP BY p.product_name";
 $ret = mysqli_query($con, $sql);
 if ($ret) {
 	$count = mysqli_num_rows($ret);

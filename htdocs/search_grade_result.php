@@ -10,7 +10,7 @@
 
 	require_once __DIR__ . "/conn.php";
    mysqli_query($con, "SET @GRADE_NAME = '".$grade_name."'");
-   $sql = "SELECT m.login_id AS '아이디', m.member_name AS '이름', m.phone AS '연락처', m.email AS '이메일', g.grade_name AS '등급명' FROM members AS m JOIN grades AS g ON m.grade_id = g.grade_id WHERE g.grade_name = @GRADE_NAME";
+   $sql = "SELECT m.login_id AS '아이디', m.member_name AS '이름', m.phone AS '연락처', m.email AS '이메일', g.grade_name AS '등급명' FROM members AS m JOIN grades AS g ON m.grade_id = g.grade_id WHERE m.stat = 1 AND g.grade_name = @GRADE_NAME";
    $ret = mysqli_query($con, $sql);
    if($ret) {
 	   $count = mysqli_num_rows($ret);

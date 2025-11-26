@@ -8,7 +8,7 @@ if ($name == "" || $phone == "") {
 	$message = "이름과 전화번호를 모두 입력하세요.";
 } else {
 	require_once __DIR__ . "/conn.php";
-	$sql = "SELECT member_id, login_id, member_name, phone, email, remain_time, grade_id FROM members WHERE member_name = '" . $name . "' AND phone = '" . $phone . "'";
+	$sql = "SELECT member_id, login_id, member_name, phone, email, remain_time, grade_id FROM members WHERE members.stat = 1 AND member_name = '" . $name . "' AND phone = '" . $phone . "'";
 	$ret = mysqli_query($con, $sql);
 	if ($ret) {
 		$count = mysqli_num_rows($ret);
