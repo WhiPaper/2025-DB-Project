@@ -9,6 +9,14 @@
 <body>
 	<h1>회원 관리 시스템</h1>
 
+	<h2>회원 관리</h2>
+	<ul>
+		<li><a href="member_list.php">회원 목록 조회</a></li>
+		<li><a href="member_create.php">회원 추가</a></li>
+		<li><a href="member_update.php">회원 수정</a></li>
+		<li><a href="member_delete.php">회원 삭제</a></li>
+	</ul>
+
 	<h2>회원 / 등급 조회</h2>
 	<ul>
 		<li><a href="select_highest_spent_result.php">누적 결제 금액이 가장 큰 회원 조회</a></li>
