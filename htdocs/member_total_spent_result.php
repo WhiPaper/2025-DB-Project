@@ -1,14 +1,13 @@
 <?php
-$login_id = $_POST['login_id'] ?? "";
+$member_id = (int)$_POST['member_id'];
 $data = null;
 $message = "";
 
-
-if ($login_id === "") {
-	$message = "유효한 로그인 ID를 입력하세요.";
+if ($member_id <= 0) {
+	$message = "유효한 회원 ID를 입력하세요.";
 } else {
 	require_once __DIR__ . "/conn.php";
-	$sql = "SELECT member_name AS '이름', total_spent AS '총 결제 금액' FROM members WHERE login_id = '" . $login_id . "'";
+	$sql = "SELECT member_name AS '이름', total_spent AS '총 결제 금액' FROM members WHERE member_id = " . $member_id;
 	$ret = mysqli_query($con, $sql);
 	if ($ret) {
 		$count = mysqli_num_rows($ret);
