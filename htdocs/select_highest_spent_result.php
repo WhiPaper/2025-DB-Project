@@ -1,7 +1,7 @@
 <?php
 	require_once __DIR__ . "/conn.php";
 
-   $sql = "SELECT m.member_name AS '이름', m.login_id AS '아이디', g.grade_name AS '현재 등급', FORMAT(m.total_spent, 0) AS '누적 결제 금액(원)', m.remain_time AS '잔여 시간(분)' FROM members m JOIN grades g ON m.grade_id = g.grade_id ORDER BY m.total_spent DESC";
+   $sql = "SELECT m.member_name AS '이름', m.login_id AS '아이디', g.grade_name AS '현재 등급', FORMAT(m.total_spent, 0) AS '누적 결제 금액(원)', m.remain_time AS '잔여 시간(분)' FROM members m JOIN grades g ON m.grade_id = g.grade_id WHERE m.stat = 1 ORDER BY m.total_spent DESC";
 
    $ret = mysqli_query($con, $sql);
    if($ret) {

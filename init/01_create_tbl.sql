@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS `pcr`.`members` (
   `remain_time` INT UNSIGNED NOT NULL DEFAULT 0,
   `total_spent` INT UNSIGNED NOT NULL DEFAULT 0,
   `grade_id` INT UNSIGNED NOT NULL DEFAULT 1,
+  `stat` INT UNSIGNED NOT NULL DEFAULT 1,
   PRIMARY KEY (`member_id`),
   UNIQUE INDEX `member_id_UNIQUE` (`member_id` ASC) VISIBLE,
   UNIQUE INDEX `login_id_UNIQUE` (`login_id` ASC) VISIBLE,

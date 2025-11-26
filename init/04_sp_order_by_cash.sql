@@ -13,6 +13,7 @@ CREATE PROCEDURE `process_cash_order`(
 BEGIN
     DECLARE v_member_id INT;
     DECLARE v_grade_id INT;
+    DECLARE v_stat INT;
     DECLARE v_discount_rate INT DEFAULT 0;
     DECLARE v_product_id INT;
     DECLARE v_price INT;
@@ -29,14 +30,18 @@ BEGIN
         SET v_quantity = 1;
     END IF;
 
-    SELECT member_id, grade_id
-    INTO v_member_id, v_grade_id
+    SELECT member_id, grade_id, stat
+    INTO v_member_id, v_grade_id, v_stat
     FROM members
     WHERE login_id = p_login_id;
 
     IF v_member_id IS NULL THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '오류: 존재하지 않는 회원입니다.';
     END IF;
+    
+    IF v_stat = 0 THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '오류: 탈퇴한 회원입니다.';
+	END IF;
 
     SELECT discount_rate INTO v_discount_rate
     FROM grades
@@ -69,7 +74,7 @@ BEGIN
 
     SELECT current_price INTO v_hourly_rate
     FROM products
-    WHERE product_name = '1시간'; 
+    WHERE product_name = '1시간 충전'; 
 
     IF v_hourly_rate IS NULL OR v_hourly_rate = 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '시스템 오류: 기준 시간권(1시간) 가격 정보를 찾을 수 없습니다.';

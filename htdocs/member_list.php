@@ -3,7 +3,7 @@ require_once __DIR__ . "/conn.php";
 $error = '';
 $members = [];
 $sql = "SELECT m.member_id, m.login_id, m.member_name, m.phone, m.email, m.remain_time, m.total_spent, g.grade_name "
-	. "FROM members m LEFT JOIN grades g ON m.grade_id = g.grade_id ORDER BY m.member_id";
+	. "FROM members m LEFT JOIN grades g ON m.grade_id = g.grade_id WHERE stat = 1 ORDER BY m.member_id";
 $ret = mysqli_query($con, $sql);
 if ($ret) {
 	while ($row = mysqli_fetch_array($ret)) {

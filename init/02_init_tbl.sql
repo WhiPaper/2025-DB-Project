@@ -9,14 +9,14 @@ INSERT INTO grades VALUES
 (NULL, '다이아몬드', 200000, 10);
 
 INSERT INTO members VALUES
-(NULL, '홍길동', 'user01', '010-1111-1111', 'user01@example.com', 120, 7500, 1), -- 1번 회원 O
-(NULL, '김철수', 'user02', '010-2222-2222', 'user02@example.com', 300, 64020, 2), -- 2번 회원 O
-(NULL, '이영희', 'user03', '010-3333-3333', 'user03@example.com', 0, 3000, 1), -- 3번 회원 O
-(NULL, '박지성', 'user04', '010-4444-4444', 'user04@example.com', 600, 156240, 4), -- 4번 회원 O
-(NULL, '김연아', 'user05', '010-5555-5555', 'user05@example.com', 1200, 114000, 3), -- 5번 회원 O
-(NULL, '이순신', 'user06', '010-6666-6666', 'user06@example.com', 50, 1800, 1), -- 6번 회원 O
-(NULL, '유재석', 'user07', '010-7777-7777', 'user07@example.com', 180, 61110, 2), -- 7번 회원 O
-(NULL, '강호동', 'user08', '010-8888-8888', 'user08@example.com', 240, 6000, 1); -- 8번 회원 O
+(NULL, '홍길동', 'user01', '010-1111-1111', 'user01@example.com', 120, 7500, 1, 1), -- 1번 회원 O
+(NULL, '김철수', 'user02', '010-2222-2222', 'user02@example.com', 300, 64020, 2, 1), -- 2번 회원 O
+(NULL, '이영희', 'user03', '010-3333-3333', 'user03@example.com', 0, 3000, 1, 1), -- 3번 회원 O
+(NULL, '박지성', 'user04', '010-4444-4444', 'user04@example.com', 600, 156240, 4, 1), -- 4번 회원 O
+(NULL, '김연아', 'user05', '010-5555-5555', 'user05@example.com', 1200, 114000, 3, 1), -- 5번 회원 O
+(NULL, '이순신', 'user06', '010-6666-6666', 'user06@example.com', 50, 1800, 1, 1), -- 6번 회원 O
+(NULL, '유재석', 'user07', '010-7777-7777', 'user07@example.com', 180, 61110, 2, 1), -- 7번 회원 O
+(NULL, '강호동', 'user08', '010-8888-8888', 'user08@example.com', 240, 6000, 1, 1); -- 8번 회원 O
 
 INSERT INTO products VALUES
 (NULL, 'TIME', '1시간 충전', 600, 1), -- 1

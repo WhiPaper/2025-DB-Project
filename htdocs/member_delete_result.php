@@ -7,13 +7,13 @@ if ($login_id === '') {
 }
 $message = '';
 if (count($errors) === 0) {
-	$check_sql = "SELECT login_id FROM members WHERE login_id = '" . $login_id . "'";
+	$check_sql = "SELECT login_id FROM members WHERE members.stat = 1 AND login_id = '" . $login_id . "'";
 	$check_ret = mysqli_query($con, $check_sql);
 	if ($check_ret) {
 		if (mysqli_num_rows($check_ret) === 0) {
 			$message = "해당 회원을 찾을 수 없습니다.";
 		} else {
-			$delete_sql = "DELETE FROM members WHERE login_id = '" . $login_id . "'";
+			$delete_sql = "UPDATE members SET members.stat = 0 WHERE login_id = '" . $login_id . "'";
 			$delete_ret = mysqli_query($con, $delete_sql);
 			if ($delete_ret) {
 				$message = "회원이 삭제되었습니다.";

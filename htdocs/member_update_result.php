@@ -22,7 +22,7 @@ if ($phone === '') {
 $message = '';
 if (count($errors) === 0) {
 	$email_value = ($email === '') ? "NULL" : "'" . $email . "'";
-	$check_sql = "SELECT login_id FROM members WHERE login_id = '" . $original_login_id . "'";
+	$check_sql = "SELECT login_id FROM members WHERE members.stat = 1 AND login_id = '" . $original_login_id . "'";
 	$check_ret = mysqli_query($con, $check_sql);
 	if ($check_ret) {
 		if (mysqli_num_rows($check_ret) === 0) {

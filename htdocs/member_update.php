@@ -4,7 +4,7 @@ $message = '';
 $member = null;
 $loginIdInput = $_GET['login_id'] ?? '';
 if ($loginIdInput !== '') {
-	$sql = "SELECT member_id, member_name, login_id, phone, email, remain_time, total_spent, grade_id FROM members WHERE login_id = '" . $loginIdInput . "'";
+	$sql = "SELECT member_id, member_name, login_id, phone, email, remain_time, total_spent, grade_id FROM members WHERE members.stat = 1 AND login_id = '" . $loginIdInput . "'";
 	$ret = mysqli_query($con, $sql);
 	if ($ret) {
 		if (mysqli_num_rows($ret) > 0) {
