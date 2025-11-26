@@ -31,7 +31,7 @@ $message = $_GET['message'] ?? '';
 				<td><input type="text" name="member_name" required></td>
 				<td><input type="text" name="login_id" maxlength="12" required></td>
 				<td><input type="text" name="phone" required></td>
-				<td><input type="email" name="email"></td>
+				<td><input type="email" name="email" required></td>
 				<td><input type="number" name="remain_time" min="0" value="0" required></td>
 			</tr>
 		</table>
