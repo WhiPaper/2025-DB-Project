@@ -28,7 +28,6 @@ mysqli_close($con);
 		<a href="index.php">메인으로</a> |
 		<a href="member_create.php">회원 추가</a>
 	</p>
-	<?php endif; ?>
 	<?php if ($error !== ''): ?>
 		<p><?php echo $error; ?></p>
 	<?php elseif (count($members) === 0): ?>
