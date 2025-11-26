@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS `pcr`.`orders` (
   `member_id` INT UNSIGNED NOT NULL,
   `grade_id_at_order` INT UNSIGNED NOT NULL,
   `discount_rate_at_order` INT UNSIGNED NOT NULL,
+  `pay_type` VARCHAR(10) NOT NULL,
   PRIMARY KEY (`order_id`),
   UNIQUE INDEX `order_id_UNIQUE` (`order_id` ASC) VISIBLE,
   INDEX `fk_grade_id_idx` (`grade_id_at_order` ASC) VISIBLE,

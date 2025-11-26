@@ -8,7 +8,8 @@ DELIMITER $$
 CREATE PROCEDURE `process_cash_order`(
     IN p_login_id VARCHAR(255),
     IN p_product_name VARCHAR(255),
-    IN p_quantity INT
+    IN p_quantity INT,
+    IN p_pay_type VARCHAR(255)
 )
 BEGIN
     DECLARE v_member_id INT;
@@ -86,9 +87,9 @@ BEGIN
     START TRANSACTION;
 
         INSERT INTO `orders`
-        (`order_time`, `member_id`, `grade_id_at_order`, `discount_rate_at_order`)
+        (`order_time`, `member_id`, `grade_id_at_order`, `discount_rate_at_order`, `pay_type`)
         VALUES
-        (NOW(), v_member_id, v_grade_id, IFNULL(v_discount_rate, 0));
+        (NOW(), v_member_id, v_grade_id, IFNULL(v_discount_rate, 0), p_pay_type);
 
         SET v_new_order_id = LAST_INSERT_ID();
 

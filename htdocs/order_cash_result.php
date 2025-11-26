@@ -4,6 +4,7 @@ $product_name = $_POST['product_name'] ?? '';
 $quantity = (int)($_POST['quantity'] ?? 1);
 $error_text = "";
 $result_text = "";
+$pay_type = "CARD";
 
 if ($quantity < 1) {
 	$quantity = 1;
@@ -14,10 +15,11 @@ if ($login_id == "" || $product_name == "") {
 } else {
 	require_once __DIR__ . "/conn.php";
 	$sql = sprintf(
-		"CALL process_cash_order('%s', '%s', %d)",
+		"CALL process_cash_order('%s', '%s', %d, '%s')",
 		$login_id,
 		$product_name,
-		$quantity
+		$quantity,
+		$pay_type
 	);
 	$result = mysqli_query($con, $sql);
 	if ($result === false) {

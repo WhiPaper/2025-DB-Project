@@ -9,7 +9,7 @@ if ($login_id == "") {
 	require_once __DIR__ . "/conn.php";
 	$sql = "SELECT m.member_id, m.login_id, m.member_name, m.phone, m.email, m.remain_time, m.total_spent, g.grade_name "
 		. "FROM members m LEFT JOIN grades g ON m.grade_id = g.grade_id "
-		. "WHERE m.login_id = '" . $login_id . "'";
+		. "WHERE m.login_id = '" . $login_id . "' AND m.stat = 1";
 	$ret = mysqli_query($con, $sql);
 	if ($ret) {
 		$count = mysqli_num_rows($ret);
